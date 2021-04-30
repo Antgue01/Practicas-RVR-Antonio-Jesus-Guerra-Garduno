@@ -9,15 +9,10 @@ int main(int argc, char **argv)
 
     if (argc != 3){
 
-        std::cerr << "USAGE P1Ej1 <hostname> <port>\n";
+        std::cerr << "USAGE e1 <hostname> <port>\n";
         return -1;
     }
     struct addrinfo hints;
-    int a=2;
-    float b=3.0f;
-    double c;
-    short d;
-    u_char g;
     struct addrinfo *res;
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
