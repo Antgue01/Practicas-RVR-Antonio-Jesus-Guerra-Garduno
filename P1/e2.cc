@@ -45,50 +45,43 @@ int main(int argc, char **argv)
         struct sockaddr client;
         socklen_t size = sizeof(struct sockaddr);
         tm *timeData = localtime(&my_time);
-        if (recvfrom(socketDescriptor, (char *)&input, sizeof(char), 0, &client, &size) == -1)
+        if (recvfrom(socketDescriptor, (void *)&input, sizeof(char), 0, &client, &size) == -1)
         {
             std::cout << "Error receiving data: " << strerror(errno) << '\n';
-            delete timeData;
             freeaddrinfo(result);
             return -1;
         }
         switch (input)
         {
         case 't':
-            strftime(buffer, bytes, "%R", timeData);
-            break;
-        case 'd':
         {
 
-            char *y = new char[4];
-            char *m = new char[2];
-            char *d = new char[2];
-
-            strftime(y, 4, "%Y", timeData);
-            strftime(m, 2, "%m", timeData);
-            strftime(d, 2, "%d", timeData);
-
-            char *s = new char[11];
-            char bar = '/';
-            strncat(s, d, 2);
-            strncat(s, &bar, 1);
-            strncat(s, m, 2);
-            strncat(s, &bar, 1);
-            strncat(s, y, 4);
-            buffer = s;
-            buffer[10] = '\0';
+            char aux[10];
+            int nBytes = strftime(aux, bytes, "%R", timeData);
+            aux[nBytes] = '\0';
+            buffer = aux;
         }
         break;
+        case 'd':
+        {
+            char t[14];
+            int nBytes = strftime(t, sizeof(char) * 13, "%d/%m/%Y", timeData);
+            t[nBytes] = '\0';
+            buffer = t;
+        }
+        break;
+        case 'q':
+            std::cout << "shutting down...\n";
+            break;
         default:
             std::cout << "Unknown command.\n";
-            break;
         }
         bytes = 11;
         sendto(socketDescriptor, buffer, bytes * sizeof(char), 0, &client, size);
-        delete timeData;
     }
-    freeaddrinfo(result);
     close(socketDescriptor);
+    freeaddrinfo(result);
+    delete buffer;
     return 0;
 }
 void fillBuffer(char input)
