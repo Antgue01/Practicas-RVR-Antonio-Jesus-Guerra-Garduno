@@ -39,6 +39,8 @@ int main(int argc, char **argv)
     size_t bytes = 21;
     char *buffer = new char[bytes];
     char input = ' ';
+    int nBytes = 0;
+    char *timeRepresentation = new char[bytes];
     while (input != 'q')
     {
         const time_t my_time = time(nullptr);
@@ -54,36 +56,48 @@ int main(int argc, char **argv)
         switch (input)
         {
         case 't':
-        {
 
-            char aux[10];
-            int nBytes = strftime(aux, bytes, "%R", timeData);
-            aux[nBytes] = '\0';
-            buffer = aux;
-        }
-        break;
+            nBytes = strftime(timeRepresentation, bytes, "%R", timeData);
+            timeRepresentation[nBytes] = '\0';
+            buffer = timeRepresentation;
+
+            break;
         case 'd':
-        {
-            char t[14];
-            int nBytes = strftime(t, sizeof(char) * 13, "%d/%m/%Y", timeData);
-            t[nBytes] = '\0';
-            buffer = t;
-        }
-        break;
+
+            nBytes = strftime(timeRepresentation, sizeof(char) * bytes, "%d/%m/%Y", timeData);
+            timeRepresentation[nBytes] = '\0';
+            buffer = timeRepresentation;
+
+            break;
         case 'q':
             std::cout << "shutting down...\n";
             break;
         default:
             std::cout << "Unknown command.\n";
         }
-        bytes = 11;
         sendto(socketDescriptor, buffer, bytes * sizeof(char), 0, &client, size);
+        char *host = new char[NI_MAXHOST];
+        char *port = new char[NI_MAXSERV];
+        returnCode = getnameinfo(&client, size, host, NI_MAXHOST, port, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+        if (returnCode != 0)
+        {
+            delete host;
+            delete port;
+            delete timeRepresentation;
+            timeRepresentation = nullptr;
+            std::cerr << gai_strerror(returnCode) << '\n';
+            freeaddrinfo(result);
+            return -1;
+        }
+        std::cout << "host: " << host << '\n'
+                  << "port: " << port << '\n';
+        delete host;
+        delete port;
     }
+
     close(socketDescriptor);
     freeaddrinfo(result);
-    delete buffer;
+    delete timeRepresentation;
+    timeRepresentation = nullptr;
     return 0;
-}
-void fillBuffer(char input)
-{
 }

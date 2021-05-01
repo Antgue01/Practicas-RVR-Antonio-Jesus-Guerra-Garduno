@@ -46,9 +46,9 @@ int main(int argc, char **argv)
         freeaddrinfo(result);
         return -1;
     }
-    char *buffer = new char[bytes];
+    char buffer [bytes];
 
-    returnCode = recvfrom(socketDescriptor, (void *)buffer, sizeof(char) * bytes, 0, &client, &size);
+    returnCode = recvfrom(socketDescriptor, (void *)&buffer, sizeof(char) * bytes, 0, &client, &size);
     if (returnCode == -1)
     {
         std::cout << "Error receiving message: " << strerror(errno) << '\n';
@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     std::cout << buffer << '\n';
     close(socketDescriptor);
     freeaddrinfo(result);
-    delete buffer;
 
     return 0;
 }

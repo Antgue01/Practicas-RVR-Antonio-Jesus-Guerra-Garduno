@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         char *host = new char[NI_MAXHOST];
         codes = getnameinfo(i->ai_addr, i->ai_addrlen, host, NI_MAXHOST, nullptr, NI_MAXSERV,
                             NI_NUMERICHOST | NI_NUMERICSERV);
-        if (codes != 0 || host == nullptr )
+        if (codes != 0)
         {
             delete host;
             std::cerr << gai_strerror(codes) << '\n';
