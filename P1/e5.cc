@@ -34,31 +34,19 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    bind(socketDescriptor, (struct sockaddr *)result->ai_addr, result->ai_addrlen);
-
-    
-    returnCode = listen(socketDescriptor, 2);
-    if (returnCode == -1)
-    {
-        std::cout << "Error on listen: " << strerror(errno) << '\n';
-        freeaddrinfo(result);
-        return -1;
-    }
-    struct sockaddr client;
+    const struct sockaddr server = *result->ai_addr;
     socklen_t size = sizeof(struct sockaddr);
-    int clientSocket = accept(socketDescriptor, &client, &size);
-
-    if (clientSocket < 0)
+    returnCode = connect(socketDescriptor, &server, size);
+    if (socketDescriptor == -1)
     {
-        std::cout << "Error on accept: " << strerror(errno) << '\n';
+        std::cout << "Error creating socket: " << strerror(errno) << '\n';
         freeaddrinfo(result);
         close(socketDescriptor);
         return -1;
     }
-
     char *host = new char[NI_MAXHOST];
     char *serv = new char[NI_MAXSERV];
-    returnCode = getnameinfo(&client, sizeof(struct sockaddr), host, NI_MAXHOST, serv, NI_MAXSERV, 0);
+    returnCode = getnameinfo(&server, sizeof(struct sockaddr), host, NI_MAXHOST, serv, NI_MAXSERV, 0);
 
     if (returnCode != 0)
     {
@@ -75,31 +63,29 @@ int main(int argc, char **argv)
     while (nBytes != 0)
     {
         memset((void *)buffer, 0, bytes);
-        nBytes = recv(clientSocket, (void *)buffer, bytes - 1, 0);
+        nBytes = recv(socketDescriptor, (void *)buffer, bytes - 1, 0);
         if (nBytes == -1)
         {
             std::cout << "Error receive: " << strerror(errno) << '\n';
             freeaddrinfo(result);
             close(socketDescriptor);
-            close(clientSocket);
+            close(socketDescriptor);
             delete buffer;
             return -1;
         }
         buffer[nBytes] = '\0';
-        nBytes = send(clientSocket, (void *)buffer, nBytes, 0);
+        nBytes = send(socketDescriptor, (void *)buffer, nBytes, 0);
         if (nBytes == -1)
         {
             std::cout << "Error receive: " << strerror(errno) << '\n';
             freeaddrinfo(result);
             close(socketDescriptor);
-            close(clientSocket);
             delete buffer;
             return -1;
         }
     }
 
     close(socketDescriptor);
-    close(clientSocket);
     freeaddrinfo(result);
     delete buffer;
     std::cout << "shutting down...\n";
