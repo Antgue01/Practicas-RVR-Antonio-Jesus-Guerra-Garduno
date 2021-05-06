@@ -40,40 +40,43 @@ int main(int argc, char **argv)
     char *buffer = new char[bytes];
     char input = ' ';
     int nBytes = 0;
-    char *timeRepresentation = new char[bytes];
     while (input != 'q')
     {
         const time_t my_time = time(nullptr);
         struct sockaddr client;
         socklen_t size = sizeof(struct sockaddr);
         tm *timeData = localtime(&my_time);
+
         if (recvfrom(socketDescriptor, (void *)&input, sizeof(char), 0, &client, &size) == -1)
         {
             std::cout << "Error receiving data: " << strerror(errno) << '\n';
             freeaddrinfo(result);
+            delete buffer;
             return -1;
         }
+        memset(buffer,0,bytes);
         switch (input)
         {
         case 't':
 
-            nBytes = strftime(timeRepresentation, bytes, "%R", timeData);
-            timeRepresentation[nBytes] = '\0';
-            buffer = timeRepresentation;
+            nBytes = strftime(buffer, sizeof(char) * bytes, "%R", timeData);
+            buffer[nBytes] = '\0';
 
             break;
         case 'd':
 
-            nBytes = strftime(timeRepresentation, sizeof(char) * bytes, "%d/%m/%Y", timeData);
-            timeRepresentation[nBytes] = '\0';
-            buffer = timeRepresentation;
+            nBytes = strftime(buffer, sizeof(char) * bytes, "%d/%m/%Y", timeData);
+            buffer[nBytes] = '\0';
 
             break;
         case 'q':
             std::cout << "shutting down...\n";
+            buffer[0] = '\0';
             break;
         default:
+            buffer[0] = '\0';
             std::cout << "Unknown command.\n";
+            break;
         }
         sendto(socketDescriptor, buffer, bytes * sizeof(char), 0, &client, size);
         char *host = new char[NI_MAXHOST];
@@ -83,8 +86,7 @@ int main(int argc, char **argv)
         {
             delete host;
             delete port;
-            delete timeRepresentation;
-            timeRepresentation = nullptr;
+            delete buffer;
             std::cerr << gai_strerror(returnCode) << '\n';
             freeaddrinfo(result);
             return -1;
@@ -97,7 +99,6 @@ int main(int argc, char **argv)
 
     close(socketDescriptor);
     freeaddrinfo(result);
-    delete timeRepresentation;
-    timeRepresentation = nullptr;
+    delete buffer;
     return 0;
 }
