@@ -54,7 +54,6 @@ int main(int argc, char **argv)
             delete buffer;
             return -1;
         }
-        memset(buffer,0,bytes);
         switch (input)
         {
         case 't':
@@ -78,7 +77,7 @@ int main(int argc, char **argv)
             std::cout << "Unknown command.\n";
             break;
         }
-        sendto(socketDescriptor, buffer, bytes * sizeof(char), 0, &client, size);
+        sendto(socketDescriptor, buffer, nBytes * sizeof(char), 0, &client, size);
         char *host = new char[NI_MAXHOST];
         char *port = new char[NI_MAXSERV];
         returnCode = getnameinfo(&client, size, host, NI_MAXHOST, port, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);

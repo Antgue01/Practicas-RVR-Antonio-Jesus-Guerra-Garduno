@@ -36,7 +36,6 @@ int main(int argc, char **argv)
 
     bind(socketDescriptor, (struct sockaddr *)result->ai_addr, result->ai_addrlen);
 
-    
     returnCode = listen(socketDescriptor, 2);
     if (returnCode == -1)
     {
@@ -72,10 +71,11 @@ int main(int argc, char **argv)
     size_t bytes = 256;
     char *buffer = new char[bytes];
     int nBytes = 1;
-    while (nBytes != 0)
+    const char *exitInput = "Q";
+
+    while (true)
     {
-        memset((void *)buffer, 0, bytes);
-        nBytes = recv(clientSocket, (void *)buffer, bytes - 1, 0);
+        nBytes = recv(clientSocket, (void *)buffer, sizeof(char) * (bytes - 1), 0);
         if (nBytes == -1)
         {
             std::cout << "Error receive: " << strerror(errno) << '\n';
@@ -85,11 +85,13 @@ int main(int argc, char **argv)
             delete buffer;
             return -1;
         }
+        if (nBytes == 0 || strncmp(buffer, exitInput, nBytes) == 0 || (buffer[0] == 'Q' && buffer[1] == '\n'))
+            break;
         buffer[nBytes] = '\0';
-        nBytes = send(clientSocket, (void *)buffer, nBytes, 0);
+        nBytes = send(clientSocket, (void *)buffer, sizeof(char) * nBytes, 0);
         if (nBytes == -1)
         {
-            std::cout << "Error receive: " << strerror(errno) << '\n';
+            std::cout << "Error send: " << strerror(errno) << '\n';
             freeaddrinfo(result);
             close(socketDescriptor);
             close(clientSocket);
