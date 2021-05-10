@@ -63,8 +63,11 @@ int main(int argc, char **argv)
     {
         std::cout << "error getting name info" << gai_strerror(returnCode);
     }
-    std::cout << "IP: " << host << '\n';
-    std::cout << "Port: " << serv << '\n';
+    else
+    {
+        std::cout << "IP: " << host << '\n';
+        std::cout << "Port: " << serv << '\n';
+    }
     delete host;
     delete serv;
 
