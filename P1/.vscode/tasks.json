@@ -8,8 +8,11 @@
 			"args": [
 				"-g",
 				"${file}",
+				"${fileDirname}/Receptor.cc",
 				"-o",
-				"${fileDirname}/${fileBasenameNoExtension}"
+				"${fileDirname}/${fileBasenameNoExtension}",
+				"-l",
+				"pthread"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"
