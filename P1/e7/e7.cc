@@ -9,6 +9,16 @@
 #include "Receptor.h"
 
 #define NUM_THREADS 3
+void hasToKeep(bool *keep)
+{
+    char input = ' ';
+    while (*keep)
+    {
+        std::cin >> input;
+        if (input == 'Q')
+            *keep = false;
+    }
+}
 int main(int argc, char **argv)
 {
 
@@ -50,10 +60,8 @@ int main(int argc, char **argv)
 
     size_t bytes = 256;
     std::vector<Receptor *> receptors;
-    char input = ' ';
-    while (input != 'Q')
+    while (true)
     {
-        std::cin >> input;
         struct sockaddr client;
         socklen_t size = sizeof(struct sockaddr);
         int clientSocket = accept(socketDescriptor, &client, &size);
@@ -94,7 +102,5 @@ int main(int argc, char **argv)
     receptors.clear();
     close(socketDescriptor);
     freeaddrinfo(result);
-    delete buffer;
     return 0;
 }
-void a() {}
