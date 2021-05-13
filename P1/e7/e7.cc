@@ -6,6 +6,7 @@
 #include <thread>
 #include <vector>
 #include <unistd.h>
+#include <condition_variable>
 #include "Receptor.h"
 
 #define NUM_THREADS 3
@@ -21,6 +22,9 @@ void hasToKeep(bool *keep)
 }
 int main(int argc, char **argv)
 {
+    std::mutex mu;
+    int numClients = 0;
+    std::condition_variable cond;
 
     if (argc != 3)
     {
@@ -64,6 +68,14 @@ int main(int argc, char **argv)
     {
         struct sockaddr client;
         socklen_t size = sizeof(struct sockaddr);
+        mu.lock();
+        while (numClients >= NUM_THREADS)
+        {
+            std::unique_lock<std::mutex> lock(mu);
+            cond.wait(lock);
+        }
+        mu.unlock();
+
         int clientSocket = accept(socketDescriptor, &client, &size);
         if (clientSocket < 0)
         {
@@ -72,6 +84,9 @@ int main(int argc, char **argv)
         }
         else
         {
+            mu.lock();
+            numClients++;
+            mu.unlock();
             char *host = new char[NI_MAXHOST];
             char *serv = new char[NI_MAXSERV];
             returnCode = getnameinfo(&client, sizeof(struct sockaddr), host, NI_MAXHOST, serv, NI_MAXSERV, 0);
@@ -88,7 +103,7 @@ int main(int argc, char **argv)
             delete host;
             delete serv;
 
-            Receptor *rec = new Receptor(clientSocket);
+            Receptor *rec = new Receptor(clientSocket, &mu, &numClients, &cond, NUM_THREADS);
             receptors.push_back(rec);
             std::thread(&Receptor::Receive, rec, bytes).detach();
         }

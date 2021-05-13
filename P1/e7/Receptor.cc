@@ -21,10 +21,10 @@ void Receptor::Receive(int bytes)
         buffer[nBytes] = '\0';
         for (int i = 0; i < 10; i++)
         {
-            std::cout<<i<<'\n';
+            std::cout << i << '\n';
             sleep(1);
         }
-        
+
         nBytes = send(_sc, (void *)buffer, sizeof(char) * nBytes, 0);
         if (nBytes == -1)
         {
@@ -34,6 +34,12 @@ void Receptor::Receive(int bytes)
             return;
         }
     }
+    main_mutex->lock();
+    (*numClients)--;
+    if (*numClients < threads)
+        condi->notify_all();
+    main_mutex->unlock();
     close(_sc);
+
     delete buffer;
 }
