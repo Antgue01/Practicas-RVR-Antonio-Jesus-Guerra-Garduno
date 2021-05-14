@@ -53,14 +53,6 @@ int main(int argc, char **argv)
     {
         std::cin>>input;
     }
-    
-    // for (int i = 0; i < NUM_THREADS; i++)
-    // {
-    //     // delete receptors[i];
-    // }
-
-    
-
     close(socketDescriptor);
     freeaddrinfo(result);
     delete buffer;
