@@ -41,21 +41,23 @@ int main(int argc, char **argv)
 
     size_t bytes = 21;
     char *buffer = new char[bytes];
-    char input = ' ';
     Receptor *receptors[NUM_THREADS];
     for (int i = 0; i < NUM_THREADS; i++)
     {
         receptors[i] = new Receptor(socketDescriptor);
         threads[i] = std::thread( &Receptor::Receive,*receptors[i], buffer,bytes);
+        threads[i].detach();
     }
-    for (int i = 0; i < NUM_THREADS; i++)
+    char input=' ';
+    while (input!='Q')
     {
-        threads[i].join();
+        std::cin>>input;
     }
-    for (int i = 0; i < NUM_THREADS; i++)
-    {
-        delete receptors[i];
-    }
+    
+    // for (int i = 0; i < NUM_THREADS; i++)
+    // {
+    //     // delete receptors[i];
+    // }
 
     
 

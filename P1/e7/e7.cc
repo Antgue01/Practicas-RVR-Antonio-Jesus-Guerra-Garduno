@@ -68,10 +68,9 @@ int main(int argc, char **argv)
     {
         struct sockaddr client;
         socklen_t size = sizeof(struct sockaddr);
-        mu.lock();
+        std::unique_lock<std::mutex> lock(mu);
         while (numClients >= NUM_THREADS)
         {
-            std::unique_lock<std::mutex> lock(mu);
             cond.wait(lock);
         }
         mu.unlock();
