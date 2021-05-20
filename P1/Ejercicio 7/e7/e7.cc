@@ -10,16 +10,7 @@
 #include "Receptor.h"
 
 #define NUM_THREADS 3
-void hasToKeep(bool *keep)
-{
-    char input = ' ';
-    while (*keep)
-    {
-        std::cin >> input;
-        if (input == 'Q')
-            *keep = false;
-    }
-}
+
 int main(int argc, char **argv)
 {
     std::mutex mu;
@@ -74,7 +65,6 @@ int main(int argc, char **argv)
             cond.wait(lock);
         }
         mu.unlock();
-
         int clientSocket = accept(socketDescriptor, &client, &size);
         if (clientSocket < 0)
         {
