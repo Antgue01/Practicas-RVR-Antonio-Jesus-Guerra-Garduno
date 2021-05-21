@@ -28,12 +28,14 @@ public:
         //los datos serán la longitud del nombre, el propio nombre y las coordenadas
         int size = sizeof(int) + sizeof(char) * lenght + 2 * sizeof(int16_t);
         alloc_data(size);
-       const char* xname=std::to_string(x).c_str();
-        const char* yname=std::to_string(y).c_str();
-        mempcpy(_data, &lenght, sizeof(int));
-        memcpy(_data, (void*)&name,  sizeof(char) * lenght);
-        memcpy(_data, (void*)&xname,  strnlen(xname,10));
-        memcpy(_data, (void*)&yname, strnlen(yname,10));
+        char *aux = _data;
+        memcpy(aux, &lenght, sizeof(int));
+        aux += sizeof(int);
+        memcpy(aux, &name, sizeof(char) * lenght);
+        aux += lenght * sizeof(char);
+        memcpy(aux, &x, sizeof(int16_t));
+        aux += sizeof(int16_t);
+        memcpy(aux, &y, sizeof(int16_t));
     }
 
     int from_bin(char *data)
@@ -42,10 +44,14 @@ public:
         if (data == 0)
             return -1;
         int lenght = 0;
-        memccpy(&lenght, data, 1, sizeof(int));
-        strncpy(name, data, lenght);
-        memccpy(&x, data, 1, sizeof(int));
-        memccpy(&y, data, 1, sizeof(int));
+        memcpy(&lenght, data, sizeof(int));
+        data += sizeof(int);
+        memcpy(&name, data, lenght);
+        data += sizeof(char) * lenght;
+        memcpy(&x, data, sizeof(int16_t));
+        data += sizeof(int16_t);
+
+        memcpy(&y, data, sizeof(int16_t));
         _size = lenght * sizeof(char) + 2 * sizeof(int16_t);
         return 0;
     }
@@ -65,16 +71,21 @@ int main(int argc, char **argv)
     // 1. Serializar el objeto one_w
     one_w.to_bin();
     // 2. Escribir la serialización en un fichero
-    int fileW = open("serialW", O_CREAT);
+    int fileW = open("serialW", O_CREAT | O_TRUNC | O_RDWR, 0666);
     if (fileW == -1)
     {
         std::cout << strerror(errno);
         return -1;
     }
+    write(fileW, one_w.data(), one_w.size());
+    close(fileW);
     // 3. Leer el fichero
+    fileW = open("serialW", O_RDONLY, 0666);
     char *fileData = new char[one_w.size()];
-    read(fileW, fileData, one_w.size());
+    read(fileW,fileData,one_w.size());
+
     // 4. "Deserializar" en one_r
+
     if (one_r.from_bin(fileData) < 0)
     {
         std::cout << "data esta vacia\n";
