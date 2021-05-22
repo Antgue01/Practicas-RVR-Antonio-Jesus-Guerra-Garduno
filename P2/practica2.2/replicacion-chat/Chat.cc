@@ -9,17 +9,34 @@ void ChatMessage::to_bin()
 
     memset(_data, 0, MESSAGE_SIZE);
 
+    char *aux = _data;
+    memcpy(aux, &type, sizeof(uint8_t));
+    aux += sizeof(uint8_t);
+    memcpy(aux, message.data(), sizeof(char) * 80);
+    aux += sizeof(char) * 80;
+    memcpy(aux, nick.data(), sizeof(char) * 80);
+
     //Serializar los campos type, nick y message en el buffer _data
 }
 
-int ChatMessage::from_bin(char * bobj)
+int ChatMessage::from_bin(char *bobj)
 {
+    if (bobj == 0)
+    {
+        std::cout << "Error on deserialization, empty object received\n";
+        return -1;
+    }
     alloc_data(MESSAGE_SIZE);
 
     memcpy(static_cast<void *>(_data), bobj, MESSAGE_SIZE);
 
     //Reconstruir la clase usando el buffer _data
-
+    char *aux = _data;
+    memcpy(&type, aux, sizeof(uint8_t));
+    aux += sizeof(uint8_t);
+    memcpy(&message, aux, sizeof(char) * 80);
+    aux += 80 * sizeof(char);
+    memcpy(&nick, aux, sizeof(char) * 8);
     return 0;
 }
 
@@ -72,10 +89,9 @@ void ChatClient::input_thread()
 
 void ChatClient::net_thread()
 {
-    while(true)
+    while (true)
     {
         //Recibir Mensajes de red
         //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
     }
 }
-
