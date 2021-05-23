@@ -52,6 +52,34 @@ void ChatServer::do_messages()
          * crear un unique_ptr con el objeto socket recibido y usar std::move
          * para añadirlo al vector
          */
+        struct sockaddr clientaddr;
+        socklen_t size = sizeof(struct sockaddr);
+        Socket *client = new Socket(&clientaddr, size);
+        ChatMessage msg;
+        socket.recv(msg, client);
+
+        if (msg.type == ChatMessage::LOGIN)
+            clients.push_back(std::unique_ptr<Socket>(std::move(client)));
+        else if (msg.type == ChatMessage::LOGOUT)
+        {
+            auto it = clients.begin();
+            while (it != clients.end() && (*it).get() != client)
+            {
+                it++;
+            }
+            if (it != clients.end())
+            {
+                clients.erase(it);
+            }
+        }
+        else
+        {
+            for (auto i = clients.begin(); i != clients.end(); i++)
+            {
+                if ((*i).get() != client)
+                    socket.send(msg, *(*i).get());
+            }
+        }
 
         //Recibir Mensajes en y en función del tipo de mensaje
         // - LOGIN: Añadir al vector clients
@@ -75,7 +103,12 @@ void ChatClient::login()
 
 void ChatClient::logout()
 {
-    // Completar
+    std::string msg;
+
+    ChatMessage em(nick, msg);
+    em.type = ChatMessage::LOGOUT;
+
+    socket.send(em, socket);
 }
 
 void ChatClient::input_thread()
@@ -83,7 +116,14 @@ void ChatClient::input_thread()
     while (true)
     {
         // Leer stdin con std::getline
+        std::string message;
+        std::getline(std::cin, message);
+        char *chatmsg = new char[80];
+        message.copy(chatmsg, 80);
         // Enviar al servidor usando socket
+        ChatMessage em(nick, chatmsg);
+        em.type = ChatMessage::MESSAGE;
+        socket.send(em, socket);
     }
 }
 
@@ -92,6 +132,9 @@ void ChatClient::net_thread()
     while (true)
     {
         //Recibir Mensajes de red
+        ChatMessage msg;
+        socket.recv(msg);
         //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
+        std::cout << msg.nick << ": " << msg.message << '\n';
     }
 }

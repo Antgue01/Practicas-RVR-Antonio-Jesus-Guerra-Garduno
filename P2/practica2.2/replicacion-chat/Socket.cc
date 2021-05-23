@@ -24,7 +24,8 @@ Socket::Socket(const char *address, const char *port) : sd(-1)
         std::cout << "Error creating socket: " << strerror(errno) << '\n';
     }
     sa = sockaddr();
-    sa_len = sizeof(struct sockaddr);
+    if (getsockname(sd, &sa, &sa_len) == -1)
+        std::cout << "error on getsockname: " << strerror(errno) << '\n';
     freeaddrinfo(result);
 }
 
@@ -78,7 +79,7 @@ bool operator==(const Socket &s1, const Socket &s2)
     if (sa1->sin_family != AF_INET || sa2->sin_family != AF_INET)
         std::cout << "Families are not INET\n";
     if (sa1->sin_family != sa2->sin_family || sa1->sin_addr.s_addr != sa2->sin_addr.s_addr || sa1->sin_port != sa2->sin_port)
-            return false;
+        return false;
 
     return true;
 };
