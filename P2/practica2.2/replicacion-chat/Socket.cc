@@ -23,9 +23,8 @@ Socket::Socket(const char *address, const char *port) : sd(-1)
     {
         std::cout << "Error creating socket: " << strerror(errno) << '\n';
     }
-    sa = sockaddr();
-    if (getsockname(sd, &sa, &sa_len) == -1)
-        std::cout << "error on getsockname: " << strerror(errno) << '\n';
+    sa = *(result->ai_addr);
+    sa_len = result->ai_addrlen;
     freeaddrinfo(result);
 }
 
@@ -58,7 +57,8 @@ int Socket::send(Serializable &obj, const Socket &sock)
     //Serializar el objeto
     obj.to_bin();
     //Enviar el objeto binario a sock usando el socket sd
-    int bytes = sendto(sock.sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
+    
+    int bytes = sendto(sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
     if (bytes == -1)
     {
         std::cout << "error on send: " << strerror(errno) << '\n';

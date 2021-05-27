@@ -23,15 +23,14 @@ class Serializable;
  *  (sin_addr.s_addr) y puerto (sin_port). La comparación de los campos puede
  *  realizarse con el operador == de los tipos básicos asociados.
  */
-bool operator== (const Socket &s1, const Socket &s2);
+bool operator==(const Socket &s1, const Socket &s2);
 
 /**
  *  Imprime la dirección y puerto en número con el formato:"dirección_ip:puerto"
  */
-std::ostream& operator<<(std::ostream& os, const Socket& dt);
+std::ostream &operator<<(std::ostream &os, const Socket &dt);
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-
 
 /**
  * Clase base que representa el extremo local de una conexión UDP. Tiene la lógica
@@ -59,13 +58,13 @@ public:
      *    @param address cadena que representa la dirección o nombre
      *    @param port cadena que representa el puerto o nombre del servicio
      */
-    Socket(const char * address, const char * port);
-
+    Socket(const char *address, const char *port);
+  
     /**
      *  Inicializa un Socket copiando los parámetros del socket
      */
-    Socket(struct sockaddr * _sa, socklen_t _sa_len):sd(-1), sa(*_sa),
-        sa_len(_sa_len){};
+    Socket(struct sockaddr *_sa, socklen_t _sa_len) : sd(-1), sa(*_sa),
+                                                      sa_len(_sa_len){};
 
     virtual ~Socket(){};
 
@@ -80,11 +79,11 @@ public:
      *
      *    @return 0 en caso de éxito o -1 si error (cerrar conexión)
      */
-    int recv(Serializable &obj, Socket * &sock);
+    int recv(Serializable &obj, Socket *&sock);
 
     int recv(Serializable &obj) //Descarta los datos del otro extremo
     {
-        Socket * s = 0;
+        Socket *s = 0;
 
         return recv(obj, s);
     }
@@ -98,19 +97,19 @@ public:
      *
      *    @return 0 en caso de éxito o -1 si error
      */
-    int send(Serializable& obj, const Socket& sock);
+    int send(Serializable &obj, const Socket &sock);
 
     /**
      *  Enlaza el descriptor del socket a la dirección y puerto
      */
     int bind()
     {
-        return ::bind(sd, (const struct sockaddr *) &sa, sa_len);
+        return ::bind(sd, (const struct sockaddr *)&sa, sa_len);
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
+    friend std::ostream &operator<<(std::ostream &os, const Socket &dt);
 
-    friend bool operator== (const Socket &s1, const Socket &s2);
+    friend bool operator==(const Socket &s1, const Socket &s2);
 
 protected:
 
@@ -123,7 +122,7 @@ protected:
      *  Representación binaria del extremo, usada por servidor y cliente
      */
     struct sockaddr sa;
-    socklen_t       sa_len;
+    socklen_t sa_len;
 };
 
 #endif /* SOCKET_H_ */

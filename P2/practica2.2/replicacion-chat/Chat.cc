@@ -8,13 +8,18 @@ void ChatMessage::to_bin()
     alloc_data(MESSAGE_SIZE);
 
     memset(_data, 0, MESSAGE_SIZE);
-
+    int lenght = message.length();
+    if (lenght < 80)
+        message.append(80 - lenght, '\0');
+    lenght = nick.length();
+    if (lenght < 8)
+        message.append(8 - lenght, '\0');
     char *aux = _data;
     memcpy(aux, &type, sizeof(uint8_t));
     aux += sizeof(uint8_t);
-    memcpy(aux, message.data(), sizeof(char) * 80);
+    memcpy(aux, message.c_str(), sizeof(char) * 80);
     aux += sizeof(char) * 80;
-    memcpy(aux, nick.data(), sizeof(char) * 80);
+    memcpy(aux, nick.c_str(), sizeof(char) * 80);
 
     //Serializar los campos type, nick y message en el buffer _data
 }
@@ -34,9 +39,13 @@ int ChatMessage::from_bin(char *bobj)
     char *aux = _data;
     memcpy(&type, aux, sizeof(uint8_t));
     aux += sizeof(uint8_t);
-    memcpy(&message, aux, sizeof(char) * 80);
+    char auxMessage[80];
+    memcpy(&auxMessage, aux, sizeof(char) * 80);
+    message = auxMessage;
     aux += 80 * sizeof(char);
-    memcpy(&nick, aux, sizeof(char) * 8);
+    char auxNick[8];
+    memcpy(&auxNick, aux, sizeof(char) * 8);
+    nick = auxNick;
     return 0;
 }
 
@@ -52,12 +61,11 @@ void ChatServer::do_messages()
          * crear un unique_ptr con el objeto socket recibido y usar std::move
          * para añadirlo al vector
          */
-        struct sockaddr clientaddr;
-        socklen_t size = sizeof(struct sockaddr);
-        Socket *client = new Socket(&clientaddr, size);
+        Socket *client;
         ChatMessage msg;
-        socket.recv(msg, client);
-
+        int returnCode = socket.recv(msg, client);
+        if (returnCode == -1)
+            std::cout << "error on socket recv: " << strerror(errno) << '\n';
         if (msg.type == ChatMessage::LOGIN)
             clients.push_back(std::unique_ptr<Socket>(std::move(client)));
         else if (msg.type == ChatMessage::LOGOUT)
@@ -76,8 +84,10 @@ void ChatServer::do_messages()
         {
             for (auto i = clients.begin(); i != clients.end(); i++)
             {
-                if ((*i).get() != client)
-                    socket.send(msg, *(*i).get());
+                if (!(*(*i).get() == *client))
+                {
+                    socket.send(msg, (*(*i).get()));
+                }
             }
         }
 
@@ -118,12 +128,20 @@ void ChatClient::input_thread()
         // Leer stdin con std::getline
         std::string message;
         std::getline(std::cin, message);
-        char *chatmsg = new char[80];
-        message.copy(chatmsg, 80);
-        // Enviar al servidor usando socket
-        ChatMessage em(nick, chatmsg);
-        em.type = ChatMessage::MESSAGE;
-        socket.send(em, socket);
+        if (message == "q")
+        {
+            logout();
+            break;
+        }
+        else
+        {
+            char *chatmsg = new char[80];
+            message.copy(chatmsg, 80);
+            // Enviar al servidor usando socket
+            ChatMessage em(nick, chatmsg);
+            em.type = ChatMessage::MESSAGE;
+            socket.send(em, socket);
+        }
     }
 }
 
