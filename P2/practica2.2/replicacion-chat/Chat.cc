@@ -19,7 +19,7 @@ void ChatMessage::to_bin()
     aux += sizeof(uint8_t);
     memcpy(aux, message.c_str(), sizeof(char) * 80);
     aux += sizeof(char) * 80;
-    memcpy(aux, nick.c_str(), sizeof(char) * 80);
+    memcpy(aux, nick.c_str(), sizeof(char) * 8);
 
     //Serializar los campos type, nick y message en el buffer _data
 }
@@ -83,12 +83,8 @@ void ChatServer::do_messages()
         else
         {
             for (auto i = clients.begin(); i != clients.end(); i++)
-            {
-                if (!(*(*i).get() == *client))
-                {
-                    socket.send(msg, (*(*i).get()));
-                }
-            }
+                if (!(*(*i) == *client))
+                    socket.send(msg, *(*i));
         }
 
         //Recibir Mensajes en y en función del tipo de mensaje

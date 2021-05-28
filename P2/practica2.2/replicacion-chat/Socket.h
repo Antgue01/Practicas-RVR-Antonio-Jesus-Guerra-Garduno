@@ -66,7 +66,10 @@ public:
     Socket(struct sockaddr *_sa, socklen_t _sa_len) : sd(-1), sa(*_sa),
                                                       sa_len(_sa_len){};
 
-    virtual ~Socket(){};
+    virtual ~Socket(){
+
+        
+    };
 
     /**
      *  Recibe un mensaje de aplicación

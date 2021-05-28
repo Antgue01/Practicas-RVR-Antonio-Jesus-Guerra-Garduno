@@ -57,7 +57,7 @@ int Socket::send(Serializable &obj, const Socket &sock)
     //Serializar el objeto
     obj.to_bin();
     //Enviar el objeto binario a sock usando el socket sd
-    
+
     int bytes = sendto(sd, obj.data(), obj.size(), 0, &sock.sa, sock.sa_len);
     if (bytes == -1)
     {
@@ -73,7 +73,6 @@ bool operator==(const Socket &s1, const Socket &s2)
     //Comparar los campos sin_family, sin_addr.s_addr y sin_port
     //de la estructura sockaddr_in de los Sockets s1 y s2
     //Retornar false si alguno difiere
-
     const sockaddr_in *sa1 = (sockaddr_in *)&s1.sa;
     const sockaddr_in *sa2 = (sockaddr_in *)&s2.sa;
     if (sa1->sin_family != AF_INET || sa2->sin_family != AF_INET)
